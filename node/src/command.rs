@@ -1,13 +1,10 @@
-// Copyright 2020 Parity Technologies (UK) Ltd.
-
-use crate::{
-	chain_spec,
-	cli::{Cli, RelayChainCli, Subcommand},
-};
+// --- std ---
+use std::{io::Write, net::SocketAddr, sync::Arc};
+// --- crates ---
 use codec::Encode;
-use cumulus_primitives::ParaId;
 use log::info;
-use parachain_runtime::Block;
+// --- substrate ---
+use cumulus_primitives::ParaId;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
@@ -16,24 +13,31 @@ use sc_cli::{
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{Block as BlockT, Hash as HashT, Header as HeaderT, Zero};
-use std::{io::Write, net::SocketAddr, sync::Arc};
+// --- darwinia ---
+use crate::{
+	chain_spec,
+	cli::{Cli, RelayChainCli, Subcommand},
+};
+use parachain_runtime::types::Block;
 
 fn load_spec(
 	id: &str,
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
-		"staging" => Ok(Box::new(chain_spec::staging_test_net(para_id)?)),
-		"" => Ok(Box::new(chain_spec::get_chain_spec(para_id)?)),
-		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
-			path.into(),
-		)?)),
+		"darwinia-parachain-genesis" => Ok(Box::new(
+			chain_spec::darwinia_parachain_build_spec_config(para_id),
+		)),
+		"darwinia-parachain" | "" => Ok(Box::new(chain_spec::darwinia_parachain_config()?)),
+		path => Ok(Box::new(
+			chain_spec::DarwiniaParachainChainSpec::from_json_file(path.into())?,
+		)),
 	}
 }
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"Parachain Collator Template".into()
+		"Darwinia Parachain".into()
 	}
 
 	fn impl_version() -> String {
@@ -42,7 +46,7 @@ impl SubstrateCli for Cli {
 
 	fn description() -> String {
 		format!(
-			"Parachain Collator Template\n\nThe command-line arguments provided first will be \
+			"Darwinia Parachain\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
 		{} [parachain-args] -- [relaychain-args]",
@@ -55,25 +59,25 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/paritytech/cumulus/issues/new".into()
+		"https://github.com/darwinia-network/parachain/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
-		2017
+		2018
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		load_spec(id, self.run.parachain_id.unwrap_or(200).into())
+		load_spec(id, self.run.parachain_id.unwrap_or(8000).into())
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		&parachain_runtime::VERSION
+		&parachain_runtime::constants::VERSION
 	}
 }
 
 impl SubstrateCli for RelayChainCli {
 	fn impl_name() -> String {
-		"Parachain Collator Template".into()
+		"Darwinia Parachain".into()
 	}
 
 	fn impl_version() -> String {
@@ -81,7 +85,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn description() -> String {
-		"Parachain Collator Template\n\nThe command-line arguments provided first will be \
+		"Darwinia Parachain\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
 		parachain-collator [parachain-args] -- [relaychain-args]"
@@ -93,11 +97,11 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/paritytech/cumulus/issues/new".into()
+		"https://github.com/darwinia-network/parachain/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
-		2017
+		2018
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
@@ -150,6 +154,8 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
+
+	sp_core::crypto::set_default_ss58_version(sp_core::crypto::Ss58AddressFormat::DarwiniaAccount);
 
 	match &cli.subcommand {
 		Some(Subcommand::Base(subcommand)) => {
@@ -241,14 +247,8 @@ pub fn run() -> Result<()> {
 					if cli.run.base.validator { "yes" } else { "no" }
 				);
 
-				crate::service::start_node(
-					config,
-					key,
-					polkadot_config,
-					id,
-					cli.run.base.validator,
-				)
-				.map(|r| r.0)
+				crate::service::start_node(config, key, polkadot_config, id, cli.run.base.validator)
+					.map(|r| r.0)
 			})
 		}
 	}

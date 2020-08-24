@@ -1,125 +1,204 @@
-// Copyright 2020 Parity Technologies (UK) Ltd.
 #![cfg_attr(not(feature = "std"), no_std)]
-// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
 
-// Make the WASM binary available.
-#[cfg(feature = "std")]
-include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
+pub mod constants {
+	// --- darwinia ---
+	use crate::*;
 
-use sp_api::impl_runtime_apis;
-use sp_core::OpaqueMetadata;
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, MultiSignature,
-};
-use sp_std::prelude::*;
-#[cfg(feature = "std")]
-use sp_version::NativeVersion;
-use sp_version::RuntimeVersion;
+	pub const VERSION: RuntimeVersion = RuntimeVersion {
+		spec_name: create_runtime_str!("darwinia-parachain"),
+		impl_name: create_runtime_str!("darwinia-parachain"),
+		authoring_version: 1,
+		spec_version: 1,
+		impl_version: 1,
+		apis: RUNTIME_API_VERSIONS,
+		transaction_version: 1,
+	};
 
-// A few exports that help ease life for downstream crates.
-pub use frame_support::{
-	construct_runtime, parameter_types,
-	traits::Randomness,
-	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
-	StorageValue,
-};
-pub use pallet_balances::Call as BalancesCall;
-pub use pallet_timestamp::Call as TimestampCall;
-#[cfg(any(feature = "std", test))]
-pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
+	pub const MILLISECS_PER_BLOCK: u64 = 6000;
 
-/// Import the template pallet.
-pub use template;
+	pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 
-/// Import the message pallet.
-pub use cumulus_token_dealer;
+	pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10 * MINUTES;
 
-/// An index to a block.
-pub type BlockNumber = u32;
+	// These time units are defined in number of blocks.
+	pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+	pub const HOURS: BlockNumber = MINUTES * 60;
+	pub const DAYS: BlockNumber = HOURS * 24;
 
-/// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
-pub type Signature = MultiSignature;
+	// 1 in 4 blocks (on average, not counting collisions) will be primary babe blocks.
+	pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
+}
 
-/// Some way of identifying an account on the chain. We intentionally make it equivalent
-/// to the public key of our transaction signing scheme.
-pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
+pub mod impls {
+	// --- darwinia ---
+	use crate::*;
 
-/// The type for looking up accounts. We don't expect more than 4 billion of them, but you
-/// never know...
-pub type AccountIndex = u32;
-
-/// Balance of an account.
-pub type Balance = u128;
-
-/// Index of a transaction in the chain.
-pub type Index = u32;
-
-/// A hash of some data used by the chain.
-pub type Hash = sp_core::H256;
-
-/// Digest item type.
-pub type DigestItem = generic::DigestItem<Hash>;
+	darwinia_support::impl_account_data! {
+		struct AccountData<Balance>
+		for
+			RingInstance,
+			KtonInstance
+		where
+			Balance = u128
+		{
+			// other data
+		}
+	}
+}
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
 /// to even the core datastructures.
 pub mod opaque {
-	use super::*;
+	// --- darwinia ---
+	use crate::*;
+
 	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
 
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 }
 
-pub type SessionHandlers = ();
+pub mod types {
+	// --- darwinia ---
+	use crate::*;
 
-impl_opaque_keys! {
-	pub struct SessionKeys {}
+	/// An index to a block.
+	pub type BlockNumber = u32;
+
+	/// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
+	pub type Signature = MultiSignature;
+
+	/// Some way of identifying an account on the chain. We intentionally make it equivalent
+	/// to the public key of our transaction signing scheme.
+	pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
+
+	/// The type for looking up accounts. We don't expect more than 4 billion of them, but you
+	/// never know...
+	pub type AccountIndex = u32;
+
+	/// Balance of an account.
+	pub type Balance = u128;
+
+	/// Index of a transaction in the chain.
+	pub type Nonce = u32;
+
+	/// A hash of some data used by the chain.
+	pub type Hash = sp_core::H256;
+
+	/// Digest item type.
+	pub type DigestItem = generic::DigestItem<Hash>;
+
+	pub type Ring = Balances;
+
+	/// The address format for describing accounts.
+	pub type Address = AccountId;
+	/// Block header type as expected by this runtime.
+	pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
+	/// Block type as expected by this runtime.
+	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
+	/// A Block signed with a Justification
+	pub type SignedBlock = generic::SignedBlock<Block>;
+	/// BlockId type as expected by this runtime.
+	pub type BlockId = generic::BlockId<Block>;
+	/// The SignedExtension to the basic transaction logic.
+	pub type SignedExtra = (
+		frame_system::CheckSpecVersion<Runtime>,
+		frame_system::CheckGenesis<Runtime>,
+		frame_system::CheckEra<Runtime>,
+		frame_system::CheckNonce<Runtime>,
+		frame_system::CheckWeight<Runtime>,
+		pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	);
+	/// Unchecked extrinsic type as expected by this runtime.
+	pub type UncheckedExtrinsic =
+		generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
+	/// Extrinsic type that has already been checked.
+	pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
+	/// Executive: handles dispatch to the various modules.
+	pub type Executive = frame_executive::Executive<
+		Runtime,
+		Block,
+		frame_system::ChainContext<Runtime>,
+		Runtime,
+		AllModules,
+	>;
 }
 
-/// This runtime version.
-pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("parachain-template"),
-	impl_name: create_runtime_str!("parachain-template"),
-	authoring_version: 1,
-	spec_version: 1,
-	impl_version: 1,
-	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 1,
-};
+pub mod wasm {
+	//! Make the WASM binary available.
 
-pub const MILLISECS_PER_BLOCK: u64 = 6000;
+	#[cfg(all(feature = "std", any(target_arch = "x86_64", target_arch = "x86")))]
+	include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
+	#[cfg(all(feature = "std", not(any(target_arch = "x86_64", target_arch = "x86"))))]
+	pub const WASM_BINARY: &[u8] =
+		include_bytes!("../../wasm/darwinia_parachain_runtime.compact.wasm");
+	#[cfg(all(feature = "std", not(any(target_arch = "x86_64", target_arch = "x86"))))]
+	pub const WASM_BINARY_BLOATY: &[u8] =
+		include_bytes!("../../wasm/darwinia_parachain_runtime.wasm");
 
-pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10 * MINUTES;
-
-// These time units are defined in number of blocks.
-pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
-pub const HOURS: BlockNumber = MINUTES * 60;
-pub const DAYS: BlockNumber = HOURS * 24;
-
-// 1 in 4 blocks (on average, not counting collisions) will be primary babe blocks.
-pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
-
-/// The version infromation used to identify this runtime when compiled natively.
-#[cfg(feature = "std")]
-pub fn native_version() -> NativeVersion {
-	NativeVersion {
-		runtime_version: VERSION,
-		can_author_with: Default::default(),
+	#[cfg(feature = "std")]
+	/// Wasm binary unwrapped. If built with `BUILD_DUMMY_WASM_BINARY`, the function panics.
+	pub fn wasm_binary_unwrap() -> &'static [u8] {
+		WASM_BINARY.expect(
+			"Development wasm binary is not available. This means the client is \
+						built with `BUILD_DUMMY_WASM_BINARY` flag and it is only usable for \
+						production chains. Please rebuild with the flag disabled.",
+		)
 	}
+}
+
+pub mod weights;
+
+// --- substrate ---
+pub use frame_support::{
+	construct_runtime, parameter_types,
+	traits::Randomness,
+	weights::{
+		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
+		IdentityFee, Weight,
+	},
+	StorageValue,
+};
+pub use pallet_timestamp::Call as TimestampCall;
+#[cfg(any(feature = "std", test))]
+pub use sp_runtime::BuildStorage;
+pub use sp_runtime::{Perbill, Permill};
+// --- darwinia ---
+pub use cumulus_token_dealer;
+pub use darwinia_balances::Call as BalancesCall;
+pub use wasm::*;
+
+// --- crates ---
+use codec::{Decode, Encode};
+// --- substrate ---
+use sp_api::impl_runtime_apis;
+use sp_core::OpaqueMetadata;
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
+	transaction_validity::{TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult, MultiSignature, RuntimeDebug,
+};
+use sp_std::prelude::*;
+#[cfg(feature = "std")]
+use sp_version::NativeVersion;
+use sp_version::RuntimeVersion;
+// --- darwinia ---
+use constants::*;
+use impls::*;
+use types::*;
+
+pub type SessionHandlers = ();
+impl_opaque_keys! {
+	pub struct SessionKeys {}
 }
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
 	pub const MaximumBlockWeight: Weight = 2 * WEIGHT_PER_SECOND;
-	/// Assume 10% of weight for average on_initialize calls.
 	pub MaximumExtrinsicWeight: Weight = AvailableBlockRatio::get()
 		.saturating_sub(Perbill::from_percent(10)) * MaximumBlockWeight::get();
 	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
@@ -127,83 +206,75 @@ parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
 	pub const ExtrinsicBaseWeight: Weight = 10_000_000;
 }
-
 impl frame_system::Trait for Runtime {
-	/// The identifier used to distinguish between accounts.
-	type AccountId = AccountId;
-	/// The aggregated dispatch type that is available for extrinsics.
-	type Call = Call;
-	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
-	type Lookup = IdentityLookup<AccountId>;
-	/// The index type for storing how many extrinsics an account has signed.
-	type Index = Index;
-	/// The index type for blocks.
-	type BlockNumber = BlockNumber;
-	/// The type for hashing blocks and tries.
-	type Hash = Hash;
-	/// The hashing algorithm used.
-	type Hashing = BlakeTwo256;
-	/// The header type.
-	type Header = generic::Header<BlockNumber, BlakeTwo256>;
-	/// The ubiquitous event type.
-	type Event = Event;
-	/// The ubiquitous origin type.
+	type BaseCallFilter = ();
 	type Origin = Origin;
-	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
+	type Call = Call;
+	type Index = Nonce;
+	type BlockNumber = BlockNumber;
+	type Hash = Hash;
+	type Hashing = BlakeTwo256;
+	type AccountId = AccountId;
+	type Lookup = IdentityLookup<Self::AccountId>;
+	type Header = generic::Header<BlockNumber, BlakeTwo256>;
+	type Event = Event;
 	type BlockHashCount = BlockHashCount;
-	/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
 	type MaximumBlockWeight = MaximumBlockWeight;
-	/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.
+	type DbWeight = RocksDbWeight;
+	type BlockExecutionWeight = BlockExecutionWeight;
+	type ExtrinsicBaseWeight = ExtrinsicBaseWeight;
+	type MaximumExtrinsicWeight = MaximumExtrinsicWeight;
 	type MaximumBlockLength = MaximumBlockLength;
-	/// Portion of the block weight that is available to all normal transactions.
 	type AvailableBlockRatio = AvailableBlockRatio;
-	/// Runtime version.
 	type Version = Version;
-	/// Converts a module to an index of this module in the runtime.
 	type ModuleToIndex = ModuleToIndex;
-	type AccountData = pallet_balances::AccountData<Balance>;
+	type AccountData = AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type DbWeight = ();
-	type ExtrinsicBaseWeight = ExtrinsicBaseWeight;
-	type BlockExecutionWeight = ();
-	type MaximumExtrinsicWeight = MaximumExtrinsicWeight;
-	type BaseCallFilter = ();
 	type SystemWeightInfo = ();
 }
 
 parameter_types! {
 	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
 }
-
 impl pallet_timestamp::Trait for Runtime {
-	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
 
+type RingInstance = darwinia_balances::Instance0;
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 500;
-	pub const TransferFee: u128 = 0;
-	pub const CreationFee: u128 = 0;
-	pub const TransactionByteFee: u128 = 1;
+	pub const ExistentialDeposit: Balance = 500;
 }
-
-impl pallet_balances::Trait for Runtime {
-	/// The type for recording an account's balance.
+impl darwinia_balances::Trait<RingInstance> for Runtime {
 	type Balance = Balance;
-	/// The ubiquitous event type.
-	type Event = Event;
 	type DustRemoval = ();
+	type Event = Event;
 	type ExistentialDeposit = ExistentialDeposit;
+	type BalanceInfo = AccountData<Balance>;
 	type AccountStore = System;
-	type WeightInfo = ();
+	type DustCollector = (Kton,);
+	type WeightInfo = weights::darwinia_balances::WeightInfo;
+}
+type KtonInstance = darwinia_balances::Instance1;
+impl darwinia_balances::Trait<KtonInstance> for Runtime {
+	type Balance = Balance;
+	type DustRemoval = ();
+	type Event = Event;
+	type ExistentialDeposit = ExistentialDeposit;
+	type BalanceInfo = AccountData<Balance>;
+	type AccountStore = System;
+	type DustCollector = (Ring,);
+	type WeightInfo = weights::darwinia_balances::WeightInfo;
 }
 
+parameter_types! {
+	pub const TransactionByteFee: Balance = 1;
+}
 impl pallet_transaction_payment::Trait for Runtime {
-	type Currency = Balances;
+	type Currency = Ring;
 	type OnTransactionPayment = ();
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = IdentityFee<Balance>;
@@ -235,14 +306,11 @@ impl cumulus_token_dealer::Trait for Runtime {
 	type Event = Event;
 	type UpwardMessageSender = MessageBroker;
 	type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
-	type Currency = Balances;
+	type Currency = Ring;
 	type XCMPMessageSender = MessageBroker;
 }
 
-/// Configure the pallet template in pallets/template.
-impl template::Trait for Runtime {
-	type Event = Event;
-}
+impl darwinia_header_mmr::Trait for Runtime {}
 
 construct_runtime! {
 	pub enum Runtime where
@@ -252,7 +320,8 @@ construct_runtime! {
 	{
 		System: frame_system::{Module, Call, Storage, Config, Event<T>},
 		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
-		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		Balances: darwinia_balances::<Instance0>::{Module, Call, Storage, Config<T>, Event<T>},
+		Kton: darwinia_balances::<Instance1>::{Module, Call, Storage, Config<T>, Event<T>},
 		Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
 		ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
@@ -260,41 +329,9 @@ construct_runtime! {
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
 		ParachainInfo: parachain_info::{Module, Storage, Config},
 		TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
-		TemplateModule: template::{Module, Call, Storage, Event<T>},
+		HeaderMMR: darwinia_header_mmr::{Module, Call, Storage},
 	}
 }
-
-/// The address format for describing accounts.
-pub type Address = AccountId;
-/// Block header type as expected by this runtime.
-pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
-/// Block type as expected by this runtime.
-pub type Block = generic::Block<Header, UncheckedExtrinsic>;
-/// A Block signed with a Justification
-pub type SignedBlock = generic::SignedBlock<Block>;
-/// BlockId type as expected by this runtime.
-pub type BlockId = generic::BlockId<Block>;
-/// The SignedExtension to the basic transaction logic.
-pub type SignedExtra = (
-	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckGenesis<Runtime>,
-	frame_system::CheckEra<Runtime>,
-	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-);
-/// Unchecked extrinsic type as expected by this runtime.
-pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
-/// Extrinsic type that has already been checked.
-pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
-/// Executive: handles dispatch to the various modules.
-pub type Executive = frame_executive::Executive<
-	Runtime,
-	Block,
-	frame_system::ChainContext<Runtime>,
-	Runtime,
-	AllModules,
->;
 
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
@@ -370,3 +407,12 @@ impl_runtime_apis! {
 }
 
 cumulus_runtime::register_validate_block!(Block, Executive);
+
+/// The version infromation used to identify this runtime when compiled natively.
+#[cfg(feature = "std")]
+pub fn native_version() -> NativeVersion {
+	NativeVersion {
+		runtime_version: VERSION,
+		can_author_with: Default::default(),
+	}
+}

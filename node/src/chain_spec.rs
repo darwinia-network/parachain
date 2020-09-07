@@ -7,10 +7,7 @@ use sc_service::{ChainType, Properties};
 use sc_telemetry::TelemetryEndpoints;
 // --- darwinia ---
 use array_bytes::fixed_hex_bytes_unchecked;
-use parachain_runtime::{
-	types::*, wasm::*, BalancesConfig as RingConfig, GenesisConfig as DarwiniaPC1GenesisConfig,
-	KtonConfig, ParachainInfoConfig, SudoConfig, SystemConfig,
-};
+use parachain_runtime::{types::*, wasm::*, GenesisConfig as DarwiniaPC1GenesisConfig};
 
 pub type DarwiniaParachainChainSpec =
 	sc_service::GenericChainSpec<DarwiniaPC1GenesisConfig, Extensions>;
@@ -46,18 +43,30 @@ pub fn darwinia_parachain_build_spec_genesis(id: ParaId) -> DarwiniaPC1GenesisCo
 	.into();
 
 	DarwiniaPC1GenesisConfig {
-		frame_system: Some(SystemConfig {
+		frame_system: Some(parachain_runtime::SystemConfig {
 			code: wasm_binary_unwrap().to_vec(),
 			..Default::default()
 		}),
-		darwinia_balances_Instance0: Some(RingConfig {
+		darwinia_balances_Instance0: Some(parachain_runtime::BalancesConfig {
 			balances: vec![(root_key.clone(), 1 << 60)],
 		}),
-		darwinia_balances_Instance1: Some(KtonConfig {
+		darwinia_balances_Instance1: Some(parachain_runtime::KtonConfig {
 			balances: vec![(root_key.clone(), 1 << 60)],
 		}),
-		pallet_sudo: Some(SudoConfig { key: root_key }),
-		parachain_info: Some(ParachainInfoConfig { parachain_id: id }),
+		pallet_sudo: Some(parachain_runtime::SudoConfig {
+			key: root_key.clone(),
+		}),
+		parachain_info: Some(parachain_runtime::ParachainInfoConfig { parachain_id: id }),
+		orml_tokens: Some(parachain_runtime::TokensConfig {
+			endowed_accounts: vec![(
+				root_key.clone(),
+				parachain_runtime::types::CurrencyId::Ring,
+				1 << 60,
+			)],
+		}),
+		pallet_balances: Some(parachain_runtime::DARConfig {
+			balances: vec![(root_key, 1 << 60)],
+		}),
 	}
 }
 

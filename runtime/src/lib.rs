@@ -124,6 +124,14 @@ pub mod types {
 		Runtime,
 		AllModules,
 	>;
+
+	pub type Amount = i128;
+
+	#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
+	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+	pub enum CurrencyId {
+		Ring = 8,
+	}
 }
 
 pub mod wasm {
@@ -173,7 +181,10 @@ pub use wasm::*;
 
 // --- crates ---
 use codec::{Decode, Encode};
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 // --- substrate ---
+use frame_support::StorageMapShim;
 use sp_api::impl_runtime_apis;
 use sp_core::OpaqueMetadata;
 use sp_runtime::{
@@ -190,6 +201,8 @@ use sp_version::RuntimeVersion;
 use constants::*;
 use impls::*;
 use types::*;
+// --- orml ---
+use orml_currencies::BasicCurrencyAdapter;
 
 pub type SessionHandlers = ();
 impl_opaque_keys! {
@@ -230,7 +243,7 @@ impl frame_system::Trait for Runtime {
 	type ModuleToIndex = ModuleToIndex;
 	type AccountData = AccountData<Balance>;
 	type OnNewAccount = ();
-	type OnKilledAccount = ();
+	type OnKilledAccount = pallet_balances::Module<Runtime>;
 	type SystemWeightInfo = ();
 }
 
@@ -312,6 +325,39 @@ impl cumulus_token_dealer::Trait for Runtime {
 
 impl darwinia_header_mmr::Trait for Runtime {}
 
+impl orml_tokens::Trait for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Amount = Amount;
+	type CurrencyId = CurrencyId;
+	type OnReceived = ();
+}
+
+parameter_types! {
+	pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Ring;
+}
+impl orml_currencies::Trait for Runtime {
+	type Event = Event;
+	type MultiCurrency = Tokens;
+	type NativeCurrency = BasicCurrencyAdapter<DAR, Balance, Balance, Amount, BlockNumber>;
+	type GetNativeCurrencyId = GetNativeCurrencyId;
+}
+
+impl pallet_balances::Trait for Runtime {
+	type Balance = Balance;
+	type DustRemoval = ();
+	type Event = Event;
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = StorageMapShim<
+		pallet_balances::Account<Runtime>,
+		frame_system::CallOnCreatedAccount<Runtime>,
+		frame_system::CallKillAccount<Runtime>,
+		AccountId,
+		pallet_balances::AccountData<Balance>,
+	>;
+	type WeightInfo = ();
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -330,6 +376,9 @@ construct_runtime! {
 		ParachainInfo: parachain_info::{Module, Storage, Config},
 		TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
 		HeaderMMR: darwinia_header_mmr::{Module, Call, Storage},
+		Tokens: orml_tokens::{Module, Storage, Event<T>, Config<T>},
+		Currencies: orml_currencies::{Module, Call, Event<T>},
+		DAR: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 	}
 }
 

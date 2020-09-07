@@ -6,5 +6,12 @@ members = [
 	"node/",
 ]
 
+[patch.crates-io]
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+frame-system  = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sp-io         = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sp-runtime    = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sp-std        = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+
 [profile.release]
 panic = 'unwind'

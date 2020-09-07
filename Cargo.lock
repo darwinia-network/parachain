@@ -976,7 +976,7 @@ source = "git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988
 dependencies = [
  "cumulus-consensus",
  "cumulus-network",
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "cumulus-runtime",
  "futures 0.3.5",
  "log 0.4.11",
@@ -1024,8 +1024,8 @@ name = "cumulus-message-broker"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9#4e7f138c828bcf118df1c988a400d4dac8e904d9"
 dependencies = [
- "cumulus-primitives",
- "cumulus-upward-message",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
+ "cumulus-upward-message 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -1040,7 +1040,7 @@ name = "cumulus-network"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9#4e7f138c828bcf118df1c988a400d4dac8e904d9"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "futures 0.3.5",
  "log 0.4.11",
  "parity-scale-codec",
@@ -1062,7 +1062,7 @@ name = "cumulus-parachain-upgrade"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9#4e7f138c828bcf118df1c988a400d4dac8e904d9"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "cumulus-runtime",
  "frame-support",
  "frame-system",
@@ -1094,11 +1094,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-primitives"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus#4e7f138c828bcf118df1c988a400d4dac8e904d9"
+dependencies = [
+ "impl-trait-for-tuples",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "cumulus-runtime"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9#4e7f138c828bcf118df1c988a400d4dac8e904d9"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "frame-executive",
  "hash-db",
  "memory-db",
@@ -1120,7 +1135,7 @@ dependencies = [
  "cumulus-collator",
  "cumulus-consensus",
  "cumulus-network",
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "polkadot-collator",
  "polkadot-primitives",
  "polkadot-service",
@@ -1138,8 +1153,8 @@ dependencies = [
 name = "cumulus-token-dealer"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives",
- "cumulus-upward-message",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
+ "cumulus-upward-message 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -1150,6 +1165,20 @@ dependencies = [
 name = "cumulus-upward-message"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9#4e7f138c828bcf118df1c988a400d4dac8e904d9"
+dependencies = [
+ "kusama-runtime",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-runtime",
+ "rococo-runtime",
+ "sp-std",
+ "westend-runtime",
+]
+
+[[package]]
+name = "cumulus-upward-message"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus#4e7f138c828bcf118df1c988a400d4dac8e904d9"
 dependencies = [
  "kusama-runtime",
  "polkadot-core-primitives",
@@ -3894,6 +3923,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-utilities"
+version = "0.1.3-dev"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?branch=rococo#6c2081fe9018c19a6c2f83ecc5735c01aae3ab3e"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "orml-xtokens"
+version = "0.1.3-dev"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?branch=rococo#6c2081fe9018c19a6c2f83ecc5735c01aae3ab3e"
+dependencies = [
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-upward-message 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "frame-support",
+ "frame-system",
+ "orml-traits",
+ "orml-utilities",
+ "parity-scale-codec",
+ "polkadot-parachain",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "owning_ref"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4418,7 +4477,7 @@ dependencies = [
  "cumulus-collator",
  "cumulus-consensus",
  "cumulus-network",
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "cumulus-service",
  "derive_more 0.99.9",
  "exit-future",
@@ -4477,7 +4536,7 @@ dependencies = [
 name = "parachain-info"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -4490,10 +4549,10 @@ version = "0.1.0"
 dependencies = [
  "cumulus-message-broker",
  "cumulus-parachain-upgrade",
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "cumulus-runtime",
  "cumulus-token-dealer",
- "cumulus-upward-message",
+ "cumulus-upward-message 0.1.0 (git+https://github.com/paritytech/cumulus?rev=4e7f138c828bcf118df1c988a400d4dac8e904d9)",
  "darwinia-balances",
  "darwinia-header-mmr",
  "darwinia-support",
@@ -4502,6 +4561,7 @@ dependencies = [
  "frame-system",
  "orml-currencies",
  "orml-tokens",
+ "orml-xtokens",
  "pallet-balances",
  "pallet-randomness-collective-flip",
  "pallet-sudo",
@@ -9022,7 +9082,7 @@ version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3bfd5b7557925ce778ff9b9ef90e3ade34c524b5ff10e239c69a42d546d2af56"
 dependencies = [
- "rand 0.3.23",
+ "rand 0.5.6",
 ]
 
 [[package]]

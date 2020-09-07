@@ -50,6 +50,7 @@ darwinia-support    = { default-features = false, git = "https://github.com/darw
 # ORML dependencies
 orml-currencies = { default-features = false, git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "rococo" }
 orml-tokens     = { default-features = false, git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "rococo" }
+orml-xtokens    = { default-features = false, git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "rococo" }
 
 [build-dependencies]
 wasm-builder-runner = { package = "substrate-wasm-builder-runner", version = "1.0.6" }
@@ -90,6 +91,7 @@ std     = [
 	"darwinia-support/std",
 	"orml-currencies/std",
 	"orml-tokens/std",
+	"orml-xtokens/std",
 ]
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = [

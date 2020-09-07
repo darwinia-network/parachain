@@ -130,7 +130,8 @@ pub mod types {
 	#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
 	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 	pub enum CurrencyId {
-		Ring = 8,
+		ACA = 0,
+		XRing = 8,
 	}
 }
 
@@ -189,7 +190,9 @@ use sp_api::impl_runtime_apis;
 use sp_core::OpaqueMetadata;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
+	traits::{
+		BlakeTwo256, Block as BlockT, Convert, IdentifyAccount, IdentityLookup, Saturating, Verify,
+	},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature, RuntimeDebug,
 };
@@ -306,11 +309,11 @@ impl cumulus_parachain_upgrade::Trait for Runtime {
 
 impl cumulus_message_broker::Trait for Runtime {
 	type Event = Event;
-	type DownwardMessageHandlers = TokenDealer;
+	type DownwardMessageHandlers = XTokens;
 	type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
 	type ParachainId = ParachainInfo;
-	type XCMPMessage = cumulus_token_dealer::XCMPMessage<AccountId, Balance>;
-	type XCMPMessageHandlers = TokenDealer;
+	type XCMPMessage = orml_xtokens::XCMPMessage<AccountId, Balance>;
+	type XCMPMessageHandlers = XTokens;
 }
 
 impl parachain_info::Trait for Runtime {}
@@ -334,13 +337,45 @@ impl orml_tokens::Trait for Runtime {
 }
 
 parameter_types! {
-	pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Ring;
+	pub const GetNativeCurrencyId: CurrencyId = CurrencyId::XRing;
 }
 impl orml_currencies::Trait for Runtime {
 	type Event = Event;
 	type MultiCurrency = Tokens;
-	type NativeCurrency = BasicCurrencyAdapter<DAR, Balance, Balance, Amount, BlockNumber>;
+	type NativeCurrency = BasicCurrencyAdapter<XRing, Balance, Balance, Amount, BlockNumber>;
 	type GetNativeCurrencyId = GetNativeCurrencyId;
+}
+
+pub struct RelayToNative;
+impl Convert<Balance, Balance> for RelayToNative {
+	fn convert(val: u128) -> Balance {
+		// native is 9
+		// relay is 12
+		val / 1_000
+	}
+}
+pub struct NativeToRelay;
+impl Convert<Balance, Balance> for NativeToRelay {
+	fn convert(val: u128) -> Balance {
+		// native is 9
+		// relay is 12
+		val * 1_000
+	}
+}
+parameter_types! {
+	pub const RelayChainCurrencyId: CurrencyId = CurrencyId::ACA;
+}
+impl orml_xtokens::Trait for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type CurrencyId = CurrencyId;
+	type Currency = Currencies;
+	type XCMPMessageSender = MessageBroker;
+	type RelayChainCurrencyId = RelayChainCurrencyId;
+	type UpwardMessageSender = MessageBroker;
+	type FromRelayChainBalance = RelayToNative;
+	type ToRelayChainBalance = NativeToRelay;
+	type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
 }
 
 impl pallet_balances::Trait for Runtime {
@@ -378,7 +413,8 @@ construct_runtime! {
 		HeaderMMR: darwinia_header_mmr::{Module, Call, Storage},
 		Tokens: orml_tokens::{Module, Storage, Config<T>, Event<T>},
 		Currencies: orml_currencies::{Module, Call, Event<T>},
-		DAR: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		XTokens: orml_xtokens::{Module, Storage, Call, Event<T>},
+		XRing: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 	}
 }
 

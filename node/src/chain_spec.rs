@@ -60,7 +60,7 @@ pub fn darwinia_parachain_build_spec_genesis(id: ParaId) -> DarwiniaPC1GenesisCo
 		orml_tokens: Some(parachain_runtime::TokensConfig {
 			endowed_accounts: vec![(
 				root_key.clone(),
-				parachain_runtime::types::CurrencyId::Ring,
+				parachain_runtime::types::CurrencyId::XRing,
 				1 << 60,
 			)],
 		}),

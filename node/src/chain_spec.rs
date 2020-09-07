@@ -8,13 +8,12 @@ use sc_telemetry::TelemetryEndpoints;
 // --- darwinia ---
 use array_bytes::fixed_hex_bytes_unchecked;
 use parachain_runtime::{
-	types::*, wasm::*, BalancesConfig as RingConfig,
-	GenesisConfig as DarwiniaParachainGenesisConfig, KtonConfig, ParachainInfoConfig, SudoConfig,
-	SystemConfig,
+	types::*, wasm::*, BalancesConfig as RingConfig, GenesisConfig as DarwiniaPC1GenesisConfig,
+	KtonConfig, ParachainInfoConfig, SudoConfig, SystemConfig,
 };
 
 pub type DarwiniaParachainChainSpec =
-	sc_service::GenericChainSpec<DarwiniaParachainGenesisConfig, Extensions>;
+	sc_service::GenericChainSpec<DarwiniaPC1GenesisConfig, Extensions>;
 
 const DARWINIA_PARACHAIN_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 const DEFAULT_PROTOCOL_ID: &str = "dar";
@@ -36,19 +35,17 @@ impl Extensions {
 }
 
 pub fn darwinia_parachain_config() -> Result<DarwiniaParachainChainSpec, String> {
-	DarwiniaParachainChainSpec::from_json_bytes(
-		&include_bytes!("../res/darwinia-parachain.json")[..],
-	)
+	DarwiniaParachainChainSpec::from_json_bytes(&include_bytes!("../res/darwinia-pc1.json")[..])
 }
 
-pub fn darwinia_parachain_build_spec_genesis(id: ParaId) -> DarwiniaParachainGenesisConfig {
+pub fn darwinia_parachain_build_spec_genesis(id: ParaId) -> DarwiniaPC1GenesisConfig {
 	let root_key: AccountId = fixed_hex_bytes_unchecked!(
 		"0x469823d00af3dd2907d7b87210375ece08691d811c396f396d06a657d1db6b58",
 		32
 	)
 	.into();
 
-	DarwiniaParachainGenesisConfig {
+	DarwiniaPC1GenesisConfig {
 		frame_system: Some(SystemConfig {
 			code: wasm_binary_unwrap().to_vec(),
 			..Default::default()
@@ -66,14 +63,14 @@ pub fn darwinia_parachain_build_spec_genesis(id: ParaId) -> DarwiniaParachainGen
 
 pub fn darwinia_parachain_build_spec_config(id: ParaId) -> DarwiniaParachainChainSpec {
 	DarwiniaParachainChainSpec::from_genesis(
-		"Darwinia Parachain",
-		"Darwinia Parachain",
+		"Darwinia PC1",
+		"Darwinia PC1",
 		ChainType::Live,
 		move || darwinia_parachain_build_spec_genesis(id),
 		vec![],
 		Some(
 			TelemetryEndpoints::new(vec![(DARWINIA_PARACHAIN_TELEMETRY_URL.to_string(), 0)])
-				.expect("Darwinia Parachain telemetry url is valid; qed"),
+				.expect("Darwinia PC1 telemetry url is valid; qed"),
 		),
 		Some(DEFAULT_PROTOCOL_ID),
 		Some(darwinia_parachain_properties()),

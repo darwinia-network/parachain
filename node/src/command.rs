@@ -25,10 +25,10 @@ fn load_spec(
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
-		"darwinia-parachain-genesis" => Ok(Box::new(
-			chain_spec::darwinia_parachain_build_spec_config(para_id),
-		)),
-		"darwinia-parachain" | "" => Ok(Box::new(chain_spec::darwinia_parachain_config()?)),
+		"darwinia-pc1-genesis" => Ok(Box::new(chain_spec::darwinia_parachain_build_spec_config(
+			para_id,
+		))),
+		"darwinia-pc1" | "" => Ok(Box::new(chain_spec::darwinia_parachain_config()?)),
 		path => Ok(Box::new(
 			chain_spec::DarwiniaParachainChainSpec::from_json_file(path.into())?,
 		)),
@@ -37,7 +37,7 @@ fn load_spec(
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"Darwinia Parachain".into()
+		"Darwinia PC1".into()
 	}
 
 	fn impl_version() -> String {
@@ -46,7 +46,7 @@ impl SubstrateCli for Cli {
 
 	fn description() -> String {
 		format!(
-			"Darwinia Parachain\n\nThe command-line arguments provided first will be \
+			"Darwinia PC1\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
 		{} [parachain-args] -- [relaychain-args]",
@@ -77,7 +77,7 @@ impl SubstrateCli for Cli {
 
 impl SubstrateCli for RelayChainCli {
 	fn impl_name() -> String {
-		"Darwinia Parachain".into()
+		"Darwinia PC1".into()
 	}
 
 	fn impl_version() -> String {
@@ -85,7 +85,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn description() -> String {
-		"Darwinia Parachain\n\nThe command-line arguments provided first will be \
+		"Darwinia PC1\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
 		parachain-collator [parachain-args] -- [relaychain-args]"

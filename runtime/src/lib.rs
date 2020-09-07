@@ -184,7 +184,7 @@ use codec::{Decode, Encode};
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 // --- substrate ---
-use frame_support::StorageMapShim;
+use frame_support::traits::StorageMapShim;
 use sp_api::impl_runtime_apis;
 use sp_core::OpaqueMetadata;
 use sp_runtime::{
@@ -376,7 +376,7 @@ construct_runtime! {
 		ParachainInfo: parachain_info::{Module, Storage, Config},
 		TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
 		HeaderMMR: darwinia_header_mmr::{Module, Call, Storage},
-		Tokens: orml_tokens::{Module, Storage, Event<T>, Config<T>},
+		Tokens: orml_tokens::{Module, Storage, Config<T>, Event<T>},
 		Currencies: orml_currencies::{Module, Call, Event<T>},
 		DAR: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 	}

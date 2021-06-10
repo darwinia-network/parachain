@@ -1174,6 +1174,7 @@ dependencies = [
  "sp-consensus",
  "sp-core",
  "sp-inherents",
+ "sp-keystore",
  "sp-runtime",
  "sp-timestamp",
  "structopt",

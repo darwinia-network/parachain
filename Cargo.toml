@@ -42,6 +42,7 @@ sc-tracing                    = { git = "https://github.com/paritytech/substrate
 sc-transaction-pool           = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 sp-api                        = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 sp-block-builder              = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
+sp-keystore                   = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 sp-consensus                  = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 sp-core                       = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 sp-inherents                  = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }

@@ -137,7 +137,7 @@ pub fn genesis_config() -> ChainSpec {
 		None,
 		Some(properties()),
 		Extensions {
-			relay_chain: "westend".into(),
+			relay_chain: "rococo-local".into(),
 			para_id: PARA_ID,
 		},
 	);
